@@ -138,8 +138,10 @@ compile and link configure options)
 
 ## Reporting
 
-a) If the model run nicely, something like this should have appeard to your console
+a\) If the model runs nicely, something like this should appear to
+the console
 
+~~~~
 ...
 signal_drhook(SIGSYS=31): New handler installed at 0x12cea55; old preserved at 0x0
 MPL_BUFFER_METHOD:  2    32000000
@@ -150,8 +152,14 @@ MPL_BUFFER_METHOD:  2    32000000
   15:42:58 STEP    4 H=   0:40 +CPU=  0.368
   15:42:59 STEP    5 H=   0:50 +CPU=  0.368
   15:42:59 STEP    6 H=   1:00 +CPU=  0.357
+~~~~
 
-Describe briefly, what information is printed to the console. How does the run time for a single time step change when using four MPI tasks instead of one? Which file contains most of the text output related to the test runs?
-b) What problems did you encounter while trying to do the test runs?
+Describe briefly, what information is printed to the console. How does
+the run time for a single time step change when using four MPI tasks
+instead of one? Which file contains most of the text output related to
+the test runs?
 
-**Email your answers to Olle Räty (olle.raty@helsinki.fi) by 18pm 22 January, latest.**
+b\) What problems did you encounter while trying to do the test runs?
+
+**Email your answers to Olle Räty (olle.raty@helsinki.fi) by 18pm 22
+  January, latest.**
