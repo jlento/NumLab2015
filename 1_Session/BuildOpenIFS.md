@@ -124,3 +124,7 @@ installed using the package manager. Linux Mint 17, with GNU compiler
 suite (gcc and gfortran) has been tested and works, provided OpenMP
 parallelization in OpenIFS is turned off (remove `-fopenmp` flag from
 compile and link configure options)
+
+## Questions
+
+1. 
