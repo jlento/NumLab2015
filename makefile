@@ -14,7 +14,6 @@
 #    Currently supported types are
 #      EXERCISE -  plain A4 Latex document
 #      SLIDE    -  revealjs html slideshow
-#      PSLIDE   -  a printable version of SLIDE
 #
 #    For example, see $(ROOT)/1_Session/files.mk
 #
@@ -36,9 +35,8 @@ REVEALJS_HEADER_CSS     = $(ROOT)/utils/reveal-simple-override.css
 REVEALJS_HEADER_PDF_CSS = $(ROOT)/utils/reveal-pdf.css
 
 # Supported document types
-types := SLIDE PSLIDE EXERCISE
+types := SLIDE EXERCISE
 SLIDE_postfix    := .html
-PSLIDE_postfix   := .html
 EXERCISE_postfix := .pdf
 
 # Pandoc options for each supported type
@@ -50,8 +48,6 @@ SLIDE_OPTS = --self-contained \
               --slide-level=2 --smart -s --mathml \
               -V revealjs-url=$(REVEALJS) \
               -t revealjs
-
-PSLIDE_OPTS = $(SLIDE_OPTS) -H $(REVEALJS_HEADER_PDF_CSS)
 
 
 ##############################
@@ -108,7 +104,7 @@ VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
 
 .PHONY : all clean
 
-all : $(SLIDES) $(PSLIDES) $(EXERCISES)
+all : $(SLIDES) $(EXERCISES)
 
 .SECONDEXPANSION :
 
