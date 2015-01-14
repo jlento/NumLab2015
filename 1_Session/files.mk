@@ -1,9 +1,8 @@
-EXERCISES = Introduction BuildOpenIFS
-SRC_Introduction = Introduction.md
-SRC_BuildOpenIFS = BuildOpenIFS.md
+EXERCISE_Introduction = Introduction.md
+EXERCISE_BuildOpenIFS = BuildOpenIFS.md
 
-SLIDES = ContemporarySupercomputers
-SRC_ContemporarySupercomputers = ContemporarySupercomputers.md \
-                                  SupercomputerArchitecture.svg \
-                                  ComputeNode.svg
+SLIDE_ContemporarySupercomputers = ContemporarySupercomputers.md \
+                                       SupercomputerArchitecture.svg \
+                                       ComputeNode.svg
 
+PSLIDE_ContemporarySupercomputers_printable = $(SLIDE_ContemporarySupercomputers)

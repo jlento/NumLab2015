@@ -41,6 +41,10 @@ module load intel/15.0.0 intelmpi/5.0.1 mkl/11.2.0
 
 **First:** *OpenIFS is not open source. Do not distribute it!*
 
+Our OpenIFS license covers only computers owned by the University of
+Helsinki and CSC. Do not install OpenIFS on any computer not owned by
+the University of Helsinki or CSC.
+
 OpenIFS source file archive `oifs38r1v04.tar.gz` is already downloaded
 from `ftp.ecmwf.int` to a local disk at CSC. Ask the instructors where
 to find it on taito.
@@ -126,15 +130,6 @@ The executable produced by this build procedure fails if OpenMP thread
 parallelization is turned on (`OMP_NUM_THREADS > 1`). There is a bug
 either in the OpenIFS source or in the Intel compiler (or in both).
 
-
-## Extra exercise, build and run OpenIFS on a local workstation/laptop
-
-It is possible to build OpenIFS and run small test cases on a Linux
-workstation, laptop or virtual machine. Most build dependencies can be
-installed using the package manager. Linux Mint 17, with GNU compiler
-suite (gcc and gfortran) has been tested and works, provided OpenMP
-parallelization in OpenIFS is turned off (remove `-fopenmp` flag from
-compile and link configure options)
 
 ## Reporting
 

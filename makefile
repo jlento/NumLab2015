@@ -1,41 +1,127 @@
-# 2015-01-05 juha.lento@csc.fi
+# 2015-01-14 juha.lento@csc.fi
 #
-# USAGE: make [ GNU make options ] -f this-makefile [ SUBDIR ]
+# USAGE: make [ GNU make options ] -f this-makefile
 #
 # Builds the html and pdf documents from markdown (.md) sources
 # using pandoc.
 #
 # ROOT
 #    of the source directories is the directory containing this makefile.
-# SUBDIR
-#    source directory is any directory under ROOT which name
-#    begins with a digit.
-# files.mk
-#    contains the list of documents and their type within a SUBDIR.
-#    Currently supported types are EXERCISES, plain A4 Latex document,
-#    and SLIDES, revealjs html slideshow (+ printable version).
+# FILES
+#    name of the definition file containing the list of documents to
+#    be build, document types and document sources, within each subdir.
 #
-#    Also, files.mk contains the list of sources for the documents. For
-#    example (ROOT/ex1/files.mk):
+#    Currently supported types are
+#      EXERCISE -  plain A4 Latex document
+#      SLIDE    -  revealjs html slideshow
+#      PSLIDE   -  a printable version of SLIDE
 #
-#        EXERCISES = ex1 ex2
-#        SRC_ex1 = ex1.md ex1.svg
-#        SRC_ex2 = ex2.md ex2.svg
+#    For example, see $(ROOT)/1_Session/files.mk
 #
-# The resulting documents are written to the current directory, i.e.
-#    the directory where make was called (out-of-source build),
-#    under respective SUBDIRs.
+# The built documents are written to the current directory.
 
-ROOT = $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-SUBDIRS = $(notdir $(wildcard $(ROOT)/[0-9]*))
 
-.PHONY : all clean $(SUBDIRS)
+#################
+# SET VARIABLES #
+#################
 
-all : $(SUBDIRS)
+ROOT  := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+FILES := files.mk
 
-$(SUBDIRS) :
-	@mkdir -p $@
-	@$(MAKE) --no-print-directory -f $(ROOT)/$@/files.mk -f $(ROOT)/utils/makefile ROOT=$(ROOT) SUBDIR=$@
+# Auxiliary files used by pandoc 
+REVEALJS = $(HOME)/.pandoc/reveal.js
+EXERCISE_HEADER_TEX     = $(ROOT)/utils/exercise_header.tex
+REVEALJS_HEADER_CSS     = $(ROOT)/utils/reveal-simple-override.css
+REVEALJS_HEADER_PDF_CSS = $(ROOT)/utils/reveal-pdf.css
+
+# Supported document types
+types := SLIDE PSLIDE EXERCISE
+SLIDE_postfix    := .html
+PSLIDE_postfix   := .html
+EXERCISE_postfix := .pdf
+
+# Pandoc options for each supported type
+EXERCISE_OPTS = -V papersize=a4paper -V fontsize=12pt \
+                -V geometry='top=2cm,bottom=2cm,left=2cm,right=2cm' \
+                -H $(EXERCISE_HEADER_TEX)
+
+SLIDE_OPTS = --self-contained \
+              --slide-level=2 --smart -s --mathml \
+              -V revealjs-url=$(REVEALJS) \
+              -t revealjs \
+
+PSLIDE_OPTS = $(SLIDES_OPTS) -H $(REVEALJS_HEADER_PDF_CSS)
+
+
+##############################
+# Templates/functions/macros #
+##############################
+
+# Set variable "SRCDIR_<document name>" and
+# add each document of the specified type to
+# the corresponding make target "<TYPE>S".
+#
+# $(1) specifies the type of the documents.
+# $(2) is the source root for the documents.
+# $(3) is the list of variable names specified
+#      in the definition file
+define set-vars
+ new_$(1)S = $$(patsubst $(1)_%,%$$($(1)_postfix),$$(filter $(1)_%,$(3)))
+ $(1)S += $$(new_$(1)S)
+ $$(foreach doc,$$(basename $$(new_$(1)S)),$$(eval SRCDIR_$$(doc) = $(2)))
+endef
+
+# Include the specified makefile, extract the list of variables
+# defined in it and set/append to the appropriate variables.
+#
+# $(1) is the makefile to be loaded
+define load-defs
+ all_vars := $$(.VARIABLES)
+ include $(1)
+ srcdir := $$(dir $$(lastword $$(MAKEFILE_LIST)))
+ files_vars = $$(filter-out all_vars $$(all_vars),$$(.VARIABLES))
+ $$(foreach type,$(types),$$(eval $$(call set-vars,$$(type),$$(srcdir),$$(files_vars))))
+endef
+
+
+######################
+# GENERATE VARIABLES #
+######################
+
+# Find all the sub-directories that have a definition file
+defs  := $(shell find $(ROOT) -name $(FILES))
+
+# Loop over all found definition files and
+# 1) include the definition file here (i.e. the source
+#    dependencies for each document),
+# 2) add the documents listed in the file to the
+#    make target list for each document type, and
+# 2) set a pointer to the source directory for each document
+$(foreach def,$(defs),$(eval $(call load-defs,$(def))))
+
+VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
+
+#########
+# RULES #
+#########
+
+.PHONY : all clean
+
+all : $(SLIDES) $(PSLIDES) $(EXERCISES)
+	echo SLIDES $(SLIDES)
+
+.SECONDEXPANSION :
+
+# Generic rule
+define gen-build
+$$($(1)S) : $$$$($(1)_$$$$(basename $$$$@))
+	cd $$(SRCDIR_$$(basename $$@)) ; \
+            pandoc $$($(1)S_OPTS) $$(notdir $$<) -o $(CURDIR)/$$@
+endef
+
+# Generate a rule for each supported document type
+$(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
 clean :
-	rm -f $(foreach dir,$(SUBDIRS),$(dir)/*.pdf $(dir)/*.html)
+	rm -f *.pdf *.html
+

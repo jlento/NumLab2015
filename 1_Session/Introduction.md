@@ -5,12 +5,12 @@
 ## Introduction to computational tools
 
 Laboratory course in numerical meteorology 2015 includes short
-introductionary lecturettes on using (super)computers and scientific
+introductionary lectures on using (super)computers and scientific
 software. Using scientific software in supercomputers as a "black box"
 machine is not really possible, in general. In order to effectively
 use scientific software on supercomputers one needs to be somewhat
 familiar with the underlying software and hardware architectures. The
-goal of the lecturettes is to make the black box more transparent.
+goal of the lectures is to make the black box more transparent.
 
 The main differences between using a local workstation or a
 laptop compared to using a supercomputer can be summarized in two
