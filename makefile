@@ -114,12 +114,16 @@ all : $(SLIDES) $(PSLIDES) $(EXERCISES)
 
 # Generic rule
 #
-# document.<type suffix> : <document src (.md)> <document includes>
+# document.<type suffix> : <document dependencies>
 #	rules ...
 #
+## Change the first line to this if you need to copy includes ..
+#
+#$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
+#            $$$$(addprefix $(CURDIR)/,$$$$(patsubst $$$$(SRCDIR_$$$$(basename $$$$@))%,%,$$$$(wordlist 2,$$$$(words $$$$($(1)_$$$$(basename $$$$@))),$$$$($(1)_$$$$(basename $$$$@)))))
+#
 define gen-build
-$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
-            $$$$(addprefix $(CURDIR)/,$$$$(patsubst $$$$(SRCDIR_$$$$(basename $$$$@))%,%,$$$$(wordlist 2,$$$$(words $$$$($(1)_$$$$(basename $$$$@))),$$$$($(1)_$$$$(basename $$$$@)))))
+$$($(1)S) : $$$$($(1)_$$$$(basename $$$$@))
 	cd $$(SRCDIR_$$(basename $$@)) ; \
             pandoc $$($(1)_OPTS) $$(notdir $$<) -o $(CURDIR)/$$@
 endef
@@ -127,11 +131,12 @@ endef
 # Generate a rule for each supported document type
 $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
-# Rules for include files
-$(CURDIR)/%.svg : %.svg
-	test -d $(dir $@) || mkdir -p $(dir $@)
-	cp $^ $@
+## Rules for the include files they need to be copied to the current dir.
+#$(CURDIR)/%.svg : %.svg
+#	test -d $(dir $@) || mkdir -p $(dir $@)
+#	cp $^ $@
 
 clean :
-	rm -f *.pdf *.html include/*.svg
+	rm -f *.pdf *.html
+# include/*.svg
 
