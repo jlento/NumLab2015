@@ -1,5 +1,5 @@
 **LABORATORY COURSE IN NUMERICAL METEOROLOGY**  
-**Introduction to computational tools, Wed Jan 16 14:00-16:00 2014, D200**
+**Introduction to computational tools, Wed Jan 16 14:15-16:00 2014, D210**
 
 
 ## Introduction to computational tools

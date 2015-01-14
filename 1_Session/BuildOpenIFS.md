@@ -1,5 +1,5 @@
 **LABORATORY COURSE IN NUMERICAL METEOROLOGY**  
-**Exercise 1, Wed Dec 17 13:00-15:00 2015, D200**
+**Exercise 1, Wed Dec 17 14:15-16:00 2015, D210**
 
 ## Introduction
 
