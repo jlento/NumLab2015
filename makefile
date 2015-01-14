@@ -18,7 +18,8 @@
 #
 #    For example, see $(ROOT)/1_Session/files.mk
 #
-# The built documents are written to the current directory.
+# The built documents and other dependencies than the markdown
+# source are written to the current directory.
 
 
 #################
@@ -48,9 +49,9 @@ EXERCISE_OPTS = -V papersize=a4paper -V fontsize=12pt \
 SLIDE_OPTS = --self-contained \
               --slide-level=2 --smart -s --mathml \
               -V revealjs-url=$(REVEALJS) \
-              -t revealjs \
+              -t revealjs
 
-PSLIDE_OPTS = $(SLIDES_OPTS) -H $(REVEALJS_HEADER_PDF_CSS)
+PSLIDE_OPTS = $(SLIDE_OPTS) -H $(REVEALJS_HEADER_PDF_CSS)
 
 
 ##############################
@@ -108,20 +109,29 @@ VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
 .PHONY : all clean
 
 all : $(SLIDES) $(PSLIDES) $(EXERCISES)
-	echo SLIDES $(SLIDES)
 
 .SECONDEXPANSION :
 
 # Generic rule
+#
+# document.<type suffix> : <document src (.md)> <document includes>
+#	rules ...
+#
 define gen-build
-$$($(1)S) : $$$$($(1)_$$$$(basename $$$$@))
+$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
+            $$$$(addprefix $(CURDIR)/,$$$$(patsubst $$$$(SRCDIR_$$$$(basename $$$$@))%,%,$$$$(wordlist 2,$$$$(words $$$$($(1)_$$$$(basename $$$$@))),$$$$($(1)_$$$$(basename $$$$@)))))
 	cd $$(SRCDIR_$$(basename $$@)) ; \
-            pandoc $$($(1)S_OPTS) $$(notdir $$<) -o $(CURDIR)/$$@
+            pandoc $$($(1)_OPTS) $$(notdir $$<) -o $(CURDIR)/$$@
 endef
 
 # Generate a rule for each supported document type
 $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
+# Rules for include files
+$(CURDIR)/%.svg : %.svg
+	test -d $(dir $@) || mkdir -p $(dir $@)
+	cp $^ $@
+
 clean :
-	rm -f *.pdf *.html
+	rm -f *.pdf *.html include/*.svg
 

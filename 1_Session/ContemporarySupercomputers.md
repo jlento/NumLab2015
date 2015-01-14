@@ -9,11 +9,11 @@
 
 ![Typical contemporary supercomputers consist of tightly
 interconnected compute nodes (~workstations) and accompanying parallel
-file system.](SupercomputerArchitecture.svg)
+file system.](include/SupercomputerArchitecture.svg)
 
 ## Compute node
 
-![Each compute node is a NUMA workstation](ComputeNode.svg)
+![Each compute node is a NUMA workstation](include/ComputeNode.svg)
 
 
 ## Vocabulary
