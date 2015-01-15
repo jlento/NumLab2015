@@ -8,8 +8,11 @@
 # ROOT
 #    of the source directories is the directory containing this makefile.
 # FILES
-#    name of the definition file containing the list of documents to
-#    be build, document types and document sources, within each subdir.
+#    name of the definition file containing
+#      1) the list of documents to be build,
+#      2) document types,
+#      3) and the files included in each document source (.md file),
+#    within each subdir.
 #
 #    Currently supported types are
 #      EXERCISE -  plain A4 Latex document
@@ -29,13 +32,13 @@ ROOT  := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 FILES := files.mk
 
 # Auxiliary files used by pandoc 
-REVEALJS = $(HOME)/.pandoc/reveal.js
+REVEALJS                = $(HOME)/.pandoc/reveal.js
 EXERCISE_HEADER_TEX     = $(ROOT)/utils/exercise_header.tex
 REVEALJS_HEADER_CSS     = $(ROOT)/utils/reveal-simple-override.css
 REVEALJS_HEADER_PDF_CSS = $(ROOT)/utils/reveal-pdf.css
 
 # Supported document types
-types := SLIDE EXERCISE
+types            := SLIDE EXERCISE
 SLIDE_postfix    := .html
 EXERCISE_postfix := .pdf
 
@@ -54,8 +57,9 @@ SLIDE_OPTS = --self-contained \
 # Templates/functions/macros #
 ##############################
 
-# Set variable "SRCDIR_<document name>" and
-# add each document of the specified type to
+# Set variables "SRCDIR_<document-name>" and
+# INCLUDES_<document-name>, and
+# each document of the specified type to
 # the corresponding make target "<TYPE>S".
 #
 # $(1) specifies the type of the documents.
@@ -66,6 +70,7 @@ define set-vars
  new_$(1)S = $$(patsubst $(1)_%,%$$($(1)_postfix),$$(filter $(1)_%,$(3)))
  $(1)S += $$(new_$(1)S)
  $$(foreach doc,$$(basename $$(new_$(1)S)),$$(eval SRCDIR_$$(doc) = $(2)))
+ $$(foreach doc,$$(basename $$(new_$(1)S)),$$(eval INCLUDES_$$(doc) = $$(patsubst %,$(CURDIR)/%,$$(wordlist 2,$$(words $$($(1)_$$(doc))),$$($(1)_$$(doc))))))
 endef
 
 # Include the specified makefile, extract the list of variables
@@ -88,12 +93,7 @@ endef
 # Find all the sub-directories that have a definition file
 defs  := $(shell find $(ROOT) -name $(FILES))
 
-# Loop over all found definition files and
-# 1) include the definition file here (i.e. the source
-#    dependencies for each document),
-# 2) add the documents listed in the file to the
-#    make target list for each document type, and
-# 2) set a pointer to the source directory for each document
+# Load definition files
 $(foreach def,$(defs),$(eval $(call load-defs,$(def))))
 
 VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
@@ -102,37 +102,39 @@ VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
 # RULES #
 #########
 
-.PHONY : all clean
+.PHONY : all subdirs clean
 
-all : $(SLIDES) $(EXERCISES)
+all : subdirs $(SLIDES) $(EXERCISES)
 
 .SECONDEXPANSION :
 
 # Generic rule
 #
-# document.<type suffix> : <document dependencies>
+# document.<type suffix> : <document-source.md> <document includes>
 #	rules ...
 #
-## Change the first line to this if you need to copy includes ..
-#
-#$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
-#            $$$$(addprefix $(CURDIR)/,$$$$(patsubst $$$$(SRCDIR_$$$$(basename $$$$@))%,%,$$$$(wordlist 2,$$$$(words $$$$($(1)_$$$$(basename $$$$@))),$$$$($(1)_$$$$(basename $$$$@)))))
-#
 define gen-build
-$$($(1)S) : $$$$($(1)_$$$$(basename $$$$@))
-	cd $$(SRCDIR_$$(basename $$@)) ; \
-            pandoc $$($(1)_OPTS) $$(notdir $$<) -o $(CURDIR)/$$@
+$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
+            $$$$(INCLUDES_$$$$(basename $$$$@))
+	@echo $$^
+	pandoc $$($(1)_OPTS) $$< -o $(CURDIR)/$$@
 endef
 
 # Generate a rule for each supported document type
 $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
-## Rules for the include files they need to be copied to the current dir.
-#$(CURDIR)/%.svg : %.svg
-#	test -d $(dir $@) || mkdir -p $(dir $@)
-#	cp $^ $@
+# Rules for the include files (files included in .md sources)
+$(CURDIR)/%.svg : %.svg
+	cp $< $@
+
+# Subdirs for files included in document sources
+INCLUDE_SUBDIRS = $(sort $(dir $(foreach var, $(filter INCLUDES_%,$(.VARIABLES)),$(eval) $($(var)))))
+
+subdirs : $(INCLUDE_SUBDIRS)
+
+$(INCLUDE_SUBDIRS) :
+	mkdir -p $@
 
 clean :
-	rm -f *.pdf *.html
-# include/*.svg
+	rm -f *.pdf *.html */*.svg
 
