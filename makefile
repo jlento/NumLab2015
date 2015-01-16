@@ -32,22 +32,22 @@ ROOT  := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 FILES := files.mk
 
 # Auxiliary files used by pandoc 
-REVEALJS                = $(HOME)/.pandoc/reveal.js
-EXERCISE_HEADER_TEX     = $(ROOT)/utils/exercise_header.tex
-REVEALJS_HEADER_CSS     = $(ROOT)/utils/reveal-simple-override.css
-REVEALJS_HEADER_PDF_CSS = $(ROOT)/utils/reveal-pdf.css
+REVEALJS                := $(HOME)/.pandoc/reveal.js
+EXERCISE_HEADER_TEX     := $(ROOT)/utils/exercise_header.tex
+REVEALJS_HEADER_CSS     := $(ROOT)/utils/reveal-simple-override.css
+REVEALJS_HEADER_PDF_CSS := $(ROOT)/utils/reveal-pdf.css
 
 # Supported document types
 types            := SLIDE EXERCISE
-SLIDE_postfix    := .html
-EXERCISE_postfix := .pdf
+SLIDE_suffix    := .html
+EXERCISE_suffix := .pdf
 
 # Pandoc options for each supported type
-EXERCISE_OPTS = -V papersize=a4paper -V fontsize=12pt \
-                -V geometry='top=2cm,bottom=2cm,left=2cm,right=2cm' \
-                -H $(EXERCISE_HEADER_TEX)
+EXERCISE_OPTS := -V papersize=a4paper -V fontsize=12pt \
+                 -V geometry='top=2cm,bottom=2cm,left=2cm,right=2cm' \
+                 -H $(EXERCISE_HEADER_TEX)
 
-SLIDE_OPTS = --self-contained \
+SLIDE_OPTS := --self-contained \
               --slide-level=2 --smart -s --mathml \
               -V revealjs-url=$(REVEALJS) \
               -t revealjs
@@ -56,6 +56,9 @@ SLIDE_OPTS = --self-contained \
 ##############################
 # Templates/functions/macros #
 ##############################
+
+# patsubst with multiple patterns
+rpatsubst = $(if $1,$(call rpatsubst,$(filter-out $(firstword $1),$1),$2,$(patsubst $(firstword $1),$2,$3)),$3)
 
 # Set variables "SRCDIR_<document-name>" and
 # INCLUDES_<document-name>, and
@@ -67,10 +70,12 @@ SLIDE_OPTS = --self-contained \
 # $(3) is the list of variable names specified
 #      in the definition file
 define set-vars
- new_$(1)S = $$(patsubst $(1)_%,%$$($(1)_postfix),$$(filter $(1)_%,$(3)))
- $(1)S += $$(new_$(1)S)
- $$(foreach doc,$$(basename $$(new_$(1)S)),$$(eval SRCDIR_$$(doc) = $(2)))
- $$(foreach doc,$$(basename $$(new_$(1)S)),$$(eval INCLUDES_$$(doc) = $$(patsubst %,$(CURDIR)/%,$$(wordlist 2,$$(words $$($(1)_$$(doc))),$$($(1)_$$(doc))))))
+ srcdir  := $$(dir $$(lastword $$(MAKEFILE_LIST)))
+ docname := $$(call rpatsubst,$(types:%=%_%),%,$(1))
+ doctype := $$(patsubst %_$$(docname),%,$1)
+ $$(eval SRCDIR_$$(docname) = $(srcdir))
+ $$(eval INCLUDES_$$(docname) = $$(patsubst %,$(CURDIR)/%,$$(filter-out $$(firstword $$($1)),$$($(1)))))
+ $$(eval $$(doctype)S += $$(docname)$$($$(doctype)_suffix))
 endef
 
 # Include the specified makefile, extract the list of variables
@@ -80,9 +85,8 @@ endef
 define load-defs
  all_vars := $$(.VARIABLES)
  include $(1)
- srcdir := $$(dir $$(lastword $$(MAKEFILE_LIST)))
- files_vars = $$(filter-out all_vars $$(all_vars),$$(.VARIABLES))
- $$(foreach type,$(types),$$(eval $$(call set-vars,$$(type),$$(srcdir),$$(files_vars))))
+ new_doc_var_names := $$(filter-out all_vars new_docs $$(all_vars),$$(.VARIABLES))
+ $$(foreach varname,$$(new_doc_var_names),$$(eval $$(call set-vars,$$(varname))))
 endef
 
 
@@ -93,17 +97,21 @@ endef
 # Find all the sub-directories that have a definition file
 defs  := $(shell find $(ROOT) -name $(FILES))
 
-# Load definition files
+# Load definition files and set variables
+#    SRCDIR_<document>
+#    INCLUDES_<document>
+#    <TYPE>S
+$(foreach t,$(types),$(eval $tS := ))
 $(foreach def,$(defs),$(eval $(call load-defs,$(def))))
 
 # Source directories
 VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
 
-# All include files
-INCLUDES = $(foreach var, $(filter INCLUDES_%,$(.VARIABLES)),$($(var)))
+# All documents' include files
+INCLUDES := $(foreach var,$(filter INCLUDES_%,$(.VARIABLES)),$($(var)))
 
 # Subdirs containing the includes under current (build) directory
-INCLUDE_SUBDIRS = $(sort $(dir $(INCLUDES)))
+INCLUDE_SUBDIRS := $(sort $(dir $(INCLUDES)))
 
 
 #########
@@ -136,7 +144,7 @@ $(CURDIR)/%.svg : %.svg
 	cp $< $@
 
 # Subdirs for the included files
-$(INCLUDES) : $$(dir $$@)
+$(INCLUDES) : | $$(dir $$@)
 
 $(INCLUDE_SUBDIRS) :
 	mkdir -p $@

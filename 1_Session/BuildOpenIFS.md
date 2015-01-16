@@ -112,7 +112,7 @@ Next, check that the test works also with multiple MPI tasks
 2. launch the job again
 
 ~~~~
-srun -n 1 -p test -t 5 \
+srun -n 4 -p test -t 5 \
   $WRKDIR/oifs/oifs38r1v04/make/intel_mkl-opt/oifs/bin/master.exe -e epc8
 ~~~~
 
