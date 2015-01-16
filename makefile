@@ -96,7 +96,15 @@ defs  := $(shell find $(ROOT) -name $(FILES))
 # Load definition files
 $(foreach def,$(defs),$(eval $(call load-defs,$(def))))
 
+# Source directories
 VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
+
+# All include files
+INCLUDES = $(foreach var, $(filter INCLUDES_%,$(.VARIABLES)),$($(var)))
+
+# Subdirs containing the includes under current (build) directory
+INCLUDE_SUBDIRS = $(sort $(dir $(INCLUDES)))
+
 
 #########
 # RULES #
@@ -104,19 +112,19 @@ VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
 
 .PHONY : all subdirs clean
 
-all : subdirs $(SLIDES) $(EXERCISES)
+all : $(SLIDES) $(EXERCISES)
 
 .SECONDEXPANSION :
 
 # Generic rule
 #
-# document.<type suffix> : <document-source.md> <document includes>
+# document.<type suffix> : <document-source.md> <document-include-subdirs>
+#                          <document-includes>
 #	rules ...
 #
 define gen-build
 $$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
             $$$$(INCLUDES_$$$$(basename $$$$@))
-	@echo $$^
 	pandoc $$($(1)_OPTS) $$< -o $(CURDIR)/$$@
 endef
 
@@ -127,10 +135,8 @@ $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 $(CURDIR)/%.svg : %.svg
 	cp $< $@
 
-# Subdirs for files included in document sources
-INCLUDE_SUBDIRS = $(sort $(dir $(foreach var, $(filter INCLUDES_%,$(.VARIABLES)),$(eval) $($(var)))))
-
-subdirs : $(INCLUDE_SUBDIRS)
+# Subdirs for the included files
+$(INCLUDES) : $$(dir $$@)
 
 $(INCLUDE_SUBDIRS) :
 	mkdir -p $@
