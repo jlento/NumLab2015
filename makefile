@@ -60,15 +60,15 @@ SLIDE_OPTS := --self-contained \
 # patsubst with multiple patterns
 rpatsubst = $(if $1,$(call rpatsubst,$(filter-out $(firstword $1),$1),$2,$(patsubst $(firstword $1),$2,$3)),$3)
 
-# Set variables "SRCDIR_<document-name>" and
-# INCLUDES_<document-name>, and
-# each document of the specified type to
-# the corresponding make target "<TYPE>S".
+# Set variables
+#     SRCDIR_<document-name>"
+#     INCLUDES_<document-name>
+# Append the document to the corresponding make target
+#     <TYPE>S
 #
-# $(1) specifies the type of the documents.
-# $(2) is the source root for the documents.
-# $(3) is the list of variable names specified
-#      in the definition file
+# $(1) is the name of a variable, i.e.
+# <document-type>_<document-name> from FILES definition file.
+#
 define set-vars
  srcdir  := $$(dir $$(lastword $$(MAKEFILE_LIST)))
  docname := $$(call rpatsubst,$(types:%=%_%),%,$(1))
@@ -79,9 +79,11 @@ define set-vars
 endef
 
 # Include the specified makefile, extract the list of variables
-# defined in it and set/append to the appropriate variables.
+# defined in it and call routine that defines relevant variables for
+# each document.
 #
 # $(1) is the makefile to be loaded
+#
 define load-defs
  all_vars := $$(.VARIABLES)
  include $(1)
@@ -101,7 +103,8 @@ defs  := $(shell find $(ROOT) -name $(FILES))
 #    SRCDIR_<document>
 #    INCLUDES_<document>
 #    <TYPE>S
-$(foreach t,$(types),$(eval $tS := ))
+# for all documents.
+#
 $(foreach def,$(defs),$(eval $(call load-defs,$(def))))
 
 # Source directories
