@@ -136,6 +136,13 @@ all : $(SLIDES) $(EXERCISES)
 define gen-build
 $$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
             $$$$(INCLUDES_$$$$(basename $$$$@))
+	@echo
+	@echo $$^
+	@echo
+	@echo INCLUDES: $(INCLUDES)
+	@echo
+	@echo INCLUDES_BashAndMake $(INCLUDES_BashAndMake)
+	@echo
 	pandoc $$($(1)_OPTS) $$< -o $(CURDIR)/$$@
 endef
 
