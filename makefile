@@ -60,7 +60,7 @@ source-type = $(patsubst .%,%,$(suffix $(basename $(notdir $(1)))))
 #######################
 
 # Sources
-sources   := $(shell find $(ROOT) -name '*.md')
+sources   := $(filter-out %README.md,$(shell find $(ROOT) -name '*.md'))
 
 # Targets for each document type in variable $(<type>s)
 $(foreach type,$(types),$(eval $(type)s := $(patsubst %.md,%.$($(type)_suffix),$(notdir $(filter %.$(type).md,$(sources))))))
