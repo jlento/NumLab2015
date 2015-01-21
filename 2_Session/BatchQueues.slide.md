@@ -8,20 +8,21 @@
 ## Running jobs on compute nodes
 
 ![Users log in into one of the LOGIN nodes. How to make use of the
- COMPUTE NODES?](include/SupercomputerArchitecture.svg)
+ COMPUTE NODES?](../1_Session/include/SupercomputerArchitecture.svg)
 
-## Message Passing Interface (MPI)
+## Parallel (MPI) program launcher
 
-- MPI library provides a way for processes (MPI tasks) to
-  send messages to each other
-- MPI tasks may be all on the same node or on different nodes
-- the tasks are launched on compute nodes with a job launcher. Common
-  ones are `mpirun`, `mpiexec`, `srun` and `aprun`.
+- launches a program (the instance of the program, a process), or
+  multiple instances of a program (SPMD), or multiple instances of
+  multiple programs (MPMD), on a compute node or compute nodes
+- Message Passing Interface (MPI) library provides a way for the
+  program instances (MPI tasks) to communicate with each other
+- common job launchers are `mpirun`, `mpiexec`, `srun`, and `aprun`.
 
 
 ## Batch queue system
 
-The efficient use of supercomputer resources is achieved using a batch
+The efficient use of the supercomputer resources is achieved using a batch
 queue system, which:
 
 1. Allocates resources
@@ -42,43 +43,33 @@ lot of work.
 ~~~~
 
 
-## Batch job script
-
-Job script 
+## Job script
 
 - prepares the environment for the program
 - launches the application on the compute nodes
-
-*Batch* job script, in addition,
-
-- defines the requested resources, the number of cores, the amount of
-  memory, computing time, etc.
+- *Batch* job script, in addition, defines the requested resources:
+  the number of cores, the amount of memory, computing time, etc.
 
 
 ## Batch jobs
 
-The default way of submitting large parallel jobs.
-
+- the default way of submitting large parallel jobs.
 - the user writes a batch job script and gives it to the batch queue system
 - batch queue system executes the script when the requested
   resources become available
 - stdin, stdout and stderr are connected to files
-
-This is how we are going to run OpenIFS today.
+- (this is how we are going to run OpenIFS today.)
 
 
 ## Interactive batch jobs
 
-A very useful way to run small test, check that everything is set up
-properly before the large runs, etc.
-
-- the user runs the job launcher directly (not really), and waits
-  for the execution to start
+- A very useful way to run small test, check that everything is set up
+  properly before the large runs, etc.
+- the user runs the job launcher directly (not really)
 - one can think that the queue system actually makes a job script on
   the fly, and then proceeds as usual
-- stdin, stdout and stderr are connected to terminal
-
-This is how we run OpenIFS in the 1.\ exercise.
+- stdin, stdout and stderr are connected to the terminal
+- (this is how we ran OpenIFS in the 1.\ exercise.)
 
 
 ## Example batch job script
@@ -105,7 +96,7 @@ srun ${EXE}
 
 ## Two ways to write a job script
 
-1. everything in a single batch job script
+1. everything as a single *batch* job script
 2. shell script prepares input files, writes a minimal batch job
    script, and then submits it
 

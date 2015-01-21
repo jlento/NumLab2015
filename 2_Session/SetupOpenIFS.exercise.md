@@ -1,6 +1,7 @@
 **LABORATORY COURSE IN NUMERICAL METEOROLOGY**  
 **Exercise 2, Fri Jan 23 14:15-16:00 2015, D210**
 
+
 ## Setup OpenIFS
 
 Let's develop the steps that we made in the exercise\ 1 a bit further.
@@ -29,21 +30,23 @@ readlink -f ${USERAPPL}
 mount
 ~~~~
 
+
 ## Split the "notes" to "subroutines"
 
 There are two tasks that we wish to do
 
-1. build OpenIFS from source 
-2. run OpenIFS
+- build OpenIFS from source 
+- run OpenIFS
 
 We do not need to build OpenIFS every time we wish to run it, so it is
 clearly a good idea to separate the tasks into respective scripts.  In
 addition, it is easiest if both tasks are executed in the same
 environment. Thus, we will make three scripts,
 
-- `env.bash` for setting up the environment
-- `build.bash` for building OpenIFS
-- `t21test.bash` for running T21 resolution test case
+1. `env.bash` for setting up the environment
+2. `build.bash` for building OpenIFS
+3. `t21test.bash` for running T21 resolution test case
+
 
 ## Environment setup
 
@@ -66,9 +69,8 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/appl/climate/intel1500/lib
 ## Build OpenIFS
 
 First, copy the OpenIFS source tar-ball `oifs38r1v04.tar.gz` to the
-right place, your source directory `${HOME}/oifs/src`.
-
-File `build.bash`:
+right place, your source directory `${HOME}/oifs/src`. Then write file
+`build.bash`:
 
 ~~~~
 #!/bin/bash                                                                     
@@ -97,10 +99,12 @@ fcm make --new -j 4 -f oifs.cfg
 cp -f intel_mkl-opt/oifs/bin/* ${installdir}/bin
 ~~~~
 
-The exercise is to add comments to the script that explain what each
-line does. Comment lines begin with character "#" (don't touch the
-first line). First try to get a general idea. Don't get stuck if some
-line is more difficult, just take the next line and come back to the
+**Exercise\ 1:** Add comments to the script that explain what each
+line does.
+
+Comment lines begin with character "#" (don't touch the first
+line). First try to get a general idea. Don't get stuck if some line
+is more difficult, just take the next line and come back to the
 difficult line later.
 
 BTW, the command to execute the script is:
@@ -110,6 +114,7 @@ bash ${USERAPPL}/oifs/scripts/build.bash
 ~~~~
 
 Some additional things to try:
+
 ~~~~
 set -v
 ~~~~

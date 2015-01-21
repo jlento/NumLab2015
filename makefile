@@ -48,12 +48,18 @@ slide_OPTS := --self-contained \
               -V revealjs-url=$(REVEALJS) \
               -t revealjs
 
-####################
-# Helper functions #
-####################
+# This stuff would be better fixed with a pandoc filter...
+INCLUDE_SUFFIXES = $(subst $(eval) ,|,svg SVG png PNG jpg JPG jpeg JPEG gif GIF)
+
+
+##########################
+# Helper functions, etc. #
+##########################
 
 # Given document source file name, returns it's type
 source-type = $(patsubst .%,%,$(suffix $(basename $(notdir $(1)))))
+
+fix-relative-paths = sed -r 's:\(([^(]*\.($(INCLUDE_SUFFIXES)))\):\($$(dir $$<)\1\):'
 
 #######################
 # GENERATED VARIABLES #
@@ -80,18 +86,21 @@ all : $(slides) $(exercises)
 # Generate build rules for each type using a template
 define gen-build
 %.$(1).$$($(1)_suffix) : %.$(1).md %.$(1).d
-	pandoc $$($(1)_OPTS) $$< -o $$@
+	$(fix-relative-paths) $$< | pandoc $$($(1)_OPTS) -o $$@
 endef
 $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
 # Generate and include dependencies
-%.d: %.md
-	runhaskell $(ROOT)/utils/extracturls.hs < $< | \
+%.d: %.md extracturls
+	./extracturls < $< | \
           sed -r -e '/^https:\/\/|http:\/\//d' \
               -e 's|(/*)(.*)|$(dir $<)\2|' | \
-          tr '\n' ' ' | sed 's|.*|$(patsubst %.md,%.$(call source-type,$<),$(notdir $<)) : &\n|' > $(notdir $@)
+          tr '\n' ' ' | sed 's|.*|$(patsubst %.md,%.$($(call source-type,$<)_suffix),$(notdir $<)) : &\n|' > $(notdir $@)
 include $(notdir $(sources:.md=.d))
 
+extracturls : $(ROOT)/utils/extracturls.hs 
+	ghc -outputdir . $< -o $@
+
 clean :
-	rm -f *.pdf *.html *.d
+	rm -f *.pdf *.html *.d extractulrs
 
