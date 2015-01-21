@@ -5,31 +5,27 @@
 # Builds the html and pdf documents from markdown (.md) sources
 # using pandoc.
 #
-# ROOT
-#    of the source directories is the directory containing this makefile.
-# FILES
-#    name of the definition file containing
-#      1) the list of documents to be build,
-#      2) document types,
-#      3) and the files included in each document source (.md file),
-#    within each subdir.
+# The source files have a name of the form
 #
-#    Currently supported types are
-#      EXERCISE -  plain A4 Latex document
-#      SLIDE    -  revealjs html slideshow
+#     <document-name>.<doc-type>.md
 #
-#    For example, see $(ROOT)/1_Session/files.mk
+# where the supported <doc-type>s are
 #
-# The built documents and other dependencies than the markdown
-# source are written to the current directory.
-
+#     exercise -  plain A4 Latex document
+#     slide    -  revealjs html slideshow
+# 
+# Source files are searched from the directory containing this
+# makefile, and it's subdirectories. Well, you can do
+#
+#     make -f makefile ROOT=/some/other/root
+# too...
+#
 
 #################
 # SET VARIABLES #
 #################
 
 ROOT  := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-FILES := files.mk
 
 # Auxiliary files used by pandoc 
 REVEALJS                := $(HOME)/.pandoc/reveal.js
@@ -38,127 +34,64 @@ REVEALJS_HEADER_CSS     := $(ROOT)/utils/reveal-simple-override.css
 REVEALJS_HEADER_PDF_CSS := $(ROOT)/utils/reveal-pdf.css
 
 # Supported document types
-types            := SLIDE EXERCISE
-SLIDE_suffix    := .html
-EXERCISE_suffix := .pdf
+types           := slide exercise
+slide_suffix    := html
+exercise_suffix := pdf
 
 # Pandoc options for each supported type
-EXERCISE_OPTS := -V papersize=a4paper -V fontsize=12pt \
+exercise_OPTS := -V papersize=a4paper -V fontsize=12pt \
                  -V geometry='top=2cm,bottom=2cm,left=2cm,right=2cm' \
                  -H $(EXERCISE_HEADER_TEX)
 
-SLIDE_OPTS := --self-contained \
+slide_OPTS := --self-contained \
               --slide-level=2 --smart -s --mathml \
               -V revealjs-url=$(REVEALJS) \
               -t revealjs
 
+####################
+# Helper functions #
+####################
 
-##############################
-# Templates/functions/macros #
-##############################
+# Given document source file name, returns it's type
+source-type = $(patsubst .%,%,$(suffix $(basename $(notdir $(1)))))
 
-# patsubst with multiple patterns
-rpatsubst = $(if $1,$(call rpatsubst,$(filter-out $(firstword $1),$1),$2,$(patsubst $(firstword $1),$2,$3)),$3)
+#######################
+# GENERATED VARIABLES #
+#######################
 
-# Set variables
-#     SRCDIR_<document-name>"
-#     INCLUDES_<document-name>
-# Append the document to the corresponding make target
-#     <TYPE>S
-#
-# $(1) is the name of a variable, i.e.
-# <document-type>_<document-name> from FILES definition file.
-#
-define set-vars
- srcdir  := $$(dir $$(lastword $$(MAKEFILE_LIST)))
- docname := $$(call rpatsubst,$(types:%=%_%),%,$(1))
- doctype := $$(patsubst %_$$(docname),%,$1)
- $$(eval SRCDIR_$$(docname) = $(srcdir))
- $$(eval INCLUDES_$$(docname) = $$(patsubst %,$(CURDIR)/%,$$(filter-out $$(firstword $$($1)),$$($(1)))))
- $$(eval $$(doctype)S += $$(docname)$$($$(doctype)_suffix))
-endef
+# Sources
+sources   := $(shell find $(ROOT) -name '*.md')
 
-# Include the specified makefile, extract the list of variables
-# defined in it and call routine that defines relevant variables for
-# each document.
-#
-# $(1) is the makefile to be loaded
-#
-define load-defs
- all_vars := $$(.VARIABLES)
- include $(1)
- new_doc_var_names := $$(filter-out all_vars new_docs $$(all_vars),$$(.VARIABLES))
- $$(foreach varname,$$(new_doc_var_names),$$(eval $$(call set-vars,$$(varname))))
-endef
-
-
-######################
-# GENERATE VARIABLES #
-######################
-
-# Find all the sub-directories that have a definition file
-defs  := $(shell find $(ROOT) -name $(FILES))
-
-# Load definition files and set variables
-#    SRCDIR_<document>
-#    INCLUDES_<document>
-#    <TYPE>S
-# for all documents.
-#
-$(foreach def,$(defs),$(eval $(call load-defs,$(def))))
-
-# Source directories
-VPATH := $(patsubst $(eval) ,:,$(dir $(defs)))
-
-# All documents' include files
-INCLUDES := $(foreach var,$(filter INCLUDES_%,$(.VARIABLES)),$($(var)))
-
-# Subdirs containing the includes under current (build) directory
-INCLUDE_SUBDIRS := $(sort $(dir $(INCLUDES)))
+# Targets for each document type in variable $(<type>s)
+$(foreach type,$(types),$(eval $(type)s := $(patsubst %.md,%.$($(type)_suffix),$(notdir $(filter %.$(type).md,$(sources))))))
 
 
 #########
 # RULES #
 #########
 
-.PHONY : all subdirs clean
+# Source search path
+vpath %.md $(subst $(eval) ,:,$(dir $(sources)))
 
-all : $(SLIDES) $(EXERCISES)
+.PHONY : all clean
 
-.SECONDEXPANSION :
+all : $(slides) $(exercises)
 
-# Generic rule
-#
-# document.<type suffix> : <document-source.md> <document-include-subdirs>
-#                          <document-includes>
-#	rules ...
-#
+# Generate build rules for each type using a template
 define gen-build
-$$($(1)S) : $$$$(firstword $$$$($(1)_$$$$(basename $$$$@))) \
-            $$$$(INCLUDES_$$$$(basename $$$$@))
-	@echo
-	@echo $$^
-	@echo
-	@echo INCLUDES: $(INCLUDES)
-	@echo
-	@echo INCLUDES_BashAndMake $(INCLUDES_BashAndMake)
-	@echo
-	pandoc $$($(1)_OPTS) $$< -o $(CURDIR)/$$@
+%.$(1).$$($(1)_suffix) : %.$(1).md %.$(1).d
+	pandoc $$($(1)_OPTS) $$< -o $$@
 endef
-
-# Generate a rule for each supported document type
 $(foreach type,$(types),$(eval $(call gen-build,$(type))))
 
-# Rules for the include files (files included in .md sources)
-$(CURDIR)/%.svg : %.svg
-	cp $< $@
-
-# Subdirs for the included files
-$(INCLUDES) : | $$(dir $$@)
-
-$(INCLUDE_SUBDIRS) :
-	mkdir -p $@
+# Generate and include dependencies
+%.d: %.md
+	runhaskell $(ROOT)/utils/extracturls.hs < $< | \
+          sed -r -e '/^https:\/\/|http:\/\//d' \
+              -e 's|(/*)(.*)|$(dir $<)\2|' | \
+          tr '\n' ' ' | sed 's|.*|$(patsubst %.md,%.$(call source-type,$<),$(notdir $<)) : &\n|' > $(notdir $@)
+include $(notdir $(sources:.md=.d))
 
 clean :
-	rm -f *.pdf *.html */*.svg
+	rm -f *.pdf *.html *.d
 
