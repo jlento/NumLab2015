@@ -11,7 +11,7 @@
 
 ## An example, Exercise\ 1:
 
-~~~~
+~~~~{#bash-as-notes .bash}
 #!/bin/bash
 module purge
 module load intel/15.0.0 intelmpi/5.0.1 mkl/11.2.0
@@ -47,30 +47,110 @@ srun -n 1 -p test -t 5 \
 
 # Level\ 1: Readable bash scripts
 
-## Some desing ideas
 
+## Some design ideas
+
+- split the "notes" into "subroutines", possibly in different files
 - use variables for values that you may want to change
-- split the notes into "subroutines"
+- avoid repetition
 - put the files into the right places
-- write a batch job script (the other three are quite general tips!)
+- todays exercise is to put ideas into practice!
 
-Todays exercise is to put those into practice!
-
+*What other good programming practices do you know?*
 
 # Level\ 2: Clever scripts
 
-## A cleaver script
+## A clever script
 
 - does not do again something that already exists and is up to date
 - does not fail for no real reason, and when fails for a good reason,
   clearly indicates why
 - works for the next user, too
 - works in an another computer, too
+- quite a lot to ask
 
-All this is quite a lot to ask. Let's keep those things in mind and
-try to make our scripts clever, but not in the expense of the most
-important rule:
+The most important rule:
 
 ** KEEP IT SIMPLE **
 
- 
+
+# More tools
+
+## Sed and Awk
+
+- like bash, sed and awk process data line by line
+- part of the unix basic toolset, work well in command pipes
+- very efficient when processing ascii data line by line
+
+
+## Python, Matlab
+
+- sure, why not?
+
+
+## Make
+
+- `make` can be used to make more clever workflow scripts
+- in make programming you write dependency rules and recipes
+- a rule simply declares a target file, it's prerequisite file(s),
+  and a recipe how to do the target file from the prerequisite file(s)
+- pattern matching, templates, metaprogramming, etc.
+
+<https://www.gnu.org/software/make/manual/make.html>
+
+
+## Makefile structure in general
+
+1. set variables
+2. define rules
+
+~~~~{#make-structure .makefile}
+VAR1 = ...
+VAR2 = ...
+
+TARGET : PREREQUISITES
+       <recipe commands>
+
+...
+~~~~~
+
+- We'll have a small make example in the post-processing part of the course.
+
+
+# Attitude
+
+
+## Why to write scripts
+
+- to document what you have done
+- share your work with colleagues
+- make it easy to do the same, or almost same thing again
+  (We do run comparison experiments quite often, don't we?)
+- why else?
+- why not?
+
+
+## How to write scripts
+
+- define what you want the script to do
+- Google it
+- ask a more experienced colleague how would he/she do it
+
+
+## A script from a colleague
+
+- most likely does not work
+- ... because it contains details that are specific to the local
+  set up of the colleague, filepaths, etc.
+- still contains valuable information
+- copy the script and modify it, or rewrite your own
+
+*If (when) it does not work, fix it!*
+
+
+# Questions?
+
+## Further reading
+
+- manuals, tutorials, man pages, internet, Google
+

@@ -32,20 +32,38 @@ Although it may first feel like an extra step, it actually automates a
 lot of work.
 
 
+## Usage policy
+
+- fair and efficient use of resources
+- defines which kind of jobs are run on the machine
+- implemented using batch queue system
+- different queues, ~ called partitions in SLURM, for different
+  kind of jobs
+- queues can have different priorities
+- typically small jobs, with small number of cores and short
+  runtime, start sooner
+
+
 ## How to communicate with the batch queue system?
 
-- through batch queue system commands, such as `sbatch` and `squeue`,
-  and batch job scripts
+- through batch queue system commands, such as `sbatch` and `squeue`
+  (SLURM), and batch job scripts
 
-~~~~
-> sbatch job.sh
-> squeue -u $USER
+~~~~{#slurm-commands .bash}
+sbatch job.sh
+squeue
+squeue -u $USER
+sinfo
+scontrol show partition test
+scontrol show partition parallel
+...
 ~~~~
 
 
 ## Job script
 
-- prepares the environment for the program
+- prepares the environment for the program, copies input files to
+  run directory, etc.
 - launches the application on the compute nodes
 - *Batch* job script, in addition, defines the requested resources:
   the number of cores, the amount of memory, computing time, etc.
@@ -58,18 +76,7 @@ lot of work.
 - batch queue system executes the script when the requested
   resources become available
 - stdin, stdout and stderr are connected to files
-- (this is how we are going to run OpenIFS today.)
-
-
-## Interactive batch jobs
-
-- A very useful way to run small test, check that everything is set up
-  properly before the large runs, etc.
-- the user runs the job launcher directly (not really)
-- one can think that the queue system actually makes a job script on
-  the fly, and then proceeds as usual
-- stdin, stdout and stderr are connected to the terminal
-- (this is how we ran OpenIFS in the 1.\ exercise.)
+- (this is how we are going to run OpenIFS today)
 
 
 ## Example batch job script
@@ -84,7 +91,19 @@ export EXE=/path/to/myexe
 srun ${EXE}
 ~~~~
 
-## What does a batch queue system actually do?
+
+## Interactive batch jobs
+
+- A very useful way to run small test, check that everything is set up
+  properly before the large runs, etc.
+- the user runs the job launcher directly (not really)
+- one can think that the queue system actually makes a job script on
+  the fly, and then proceeds as usual
+- stdin, stdout and stderr are connected to the terminal
+- (this is how we ran OpenIFS in the 1st exercise)
+
+
+## What does a batch queue system *actually* do?
  
 1. reads the resource requests from the batch job file
 2. puts the job into a batch job queue
@@ -96,22 +115,55 @@ srun ${EXE}
 
 ## Two ways to write a job script
 
-1. everything as a single *batch* job script
-2. shell script prepares input files, writes a minimal batch job
+1. a shell script prepares input files, writes a minimal batch job
    script, and then submits it
+2. everything as a single *batch* job script
+
+
+## A shell script generating a minimal batch job script
+
+- if setting up the environment requires lot's of file copying,
+  conversions, e.g. sequential I/O or other sequential steps
+- if the same script is also used to start interactive jobs (with
+  minimal modifications)
 
 
 ## Everything in a single batch job script
 
 The script needs to be slightly clever if it should work both
-interactively `bash myjob.bash` and through batch queue system `sbatch
-myjob.bash`.
+interactively and through the batch queue system.
+
+~~~~~
+bash myjob.bash
+sbatch myjob.bash
+~~~~~
 
 
-## A shell script and a minimal batch job script
+# Supercomputers are individuals
 
-### When, and when not, to use
+## Taito and Sisu
 
-- if setting up the environment requires lot's of file copying,
-  conversions, e.g. sequential I/O or other sequential steps
-- if the same script is also used to start interactive jobs
+- the intended usage profile is different
+- the basic unit of resource is a processor core in taito,
+  and a compute node in sisu
+- in taito the batch queue system (SLURM) and job launcher `srun`
+  are tightly integrated
+- in sisu the user uses batch queue system to reserve nodes, and
+  then tells `aprun` how to place the processes in the nodes
+
+
+# Questions?
+
+## Further reading
+
+- more details and examples in the [CSC Environment User
+  Guide](https://research.csc.fi/csc-guide), [Taito User
+  Guide](https://research.csc.fi/taito-user-guide), and in [Sisu User
+  Guide](https://research.csc.fi/sisu-user-guide)
+
+~~~~
+man sbatch
+man srun
+...
+~~~~
+
