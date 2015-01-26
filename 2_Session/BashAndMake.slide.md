@@ -41,9 +41,6 @@ srun -n 1 -p test -t 5 \
 
 ### Do I need to make it pretty?
 
-- depends totally on how many times, and by how many people it is used
-- if you show it to someone else, yes
-
 
 # Level\ 1: Readable bash scripts
 
@@ -99,7 +96,7 @@ The most important rule:
 <https://www.gnu.org/software/make/manual/make.html>
 
 
-## Makefile structure in general
+## Makefile structure
 
 1. set variables
 2. define rules

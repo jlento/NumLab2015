@@ -10,20 +10,20 @@
 ![Users log in into one of the LOGIN nodes. How to make use of the
  COMPUTE NODES?](../1_Session/include/SupercomputerArchitecture.svg)
 
-## Parallel (MPI) program launcher
+## Parallel program launcher
 
 - launches a program (the instance of the program, a process), or
   multiple instances of a program (SPMD), or multiple instances of
   multiple programs (MPMD), on a compute node or compute nodes
 - Message Passing Interface (MPI) library provides a way for the
-  program instances (MPI tasks) to communicate with each other
+  program instances (MPI tasks) to communicate
 - common job launchers are `mpirun`, `mpiexec`, `srun`, and `aprun`.
 
 
 ## Batch queue system
 
 The efficient use of the supercomputer resources is achieved using a batch
-queue system, which:
+queue system (job scheduler), which:
 
 1. Allocates resources
 2. Integrates with the MPI job laucher
@@ -44,7 +44,7 @@ lot of work.
   runtime, start sooner
 
 
-## How to communicate with the batch queue system?
+## Interacting with the job scheduler?
 
 - through batch queue system commands, such as `sbatch` and `squeue`
   (SLURM), and batch job scripts
@@ -73,7 +73,7 @@ scontrol show partition parallel
 
 - the default way of submitting large parallel jobs.
 - the user writes a batch job script and gives it to the batch queue system
-- batch queue system executes the script when the requested
+- job scheduler executes the script when the requested
   resources become available
 - stdin, stdout and stderr are connected to files
 - (this is how we are going to run OpenIFS today)
@@ -103,7 +103,7 @@ srun ${EXE}
 - (this is how we ran OpenIFS in the 1st exercise)
 
 
-## What does a batch queue system *actually* do?
+## What does the job scheduler *actually* do?
  
 1. reads the resource requests from the batch job file
 2. puts the job into a batch job queue
@@ -146,9 +146,9 @@ sbatch myjob.bash
 - the intended usage profile is different
 - the basic unit of resource is a processor core in taito,
   and a compute node in sisu
-- in taito the batch queue system (SLURM) and job launcher `srun`
+- in taito the job scheduler (SLURM) and job launcher `srun`
   are tightly integrated
-- in sisu the user uses batch queue system to reserve nodes, and
+- in sisu the user uses the job scheduler to reserve nodes, and
   then tells `aprun` how to place the processes in the nodes
 
 
