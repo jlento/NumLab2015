@@ -1,4 +1,4 @@
-% Parallel file system
+% Parallel file systems
 % Juha Lento
 % January 30, 2015
 
