@@ -61,7 +61,8 @@ File `env.bash`:
 #!/bin/bash                                                                     
 module purge
 module load intel/15.0.0 intelmpi/5.0.1 mkl/11.2.0
-export GRIB_SAMPLES_PATH=/appl/climate/intel1500/share/grib_api/ifs_samples/grib1_mlgrib2
+export GRIB_SAMPLES_PATH=/appl/climate/intel1500/`
+                        `share/grib_api/ifs_samples/grib1_mlgrib2
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/appl/climate/intel1500/lib
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -166,7 +167,7 @@ jobfile=job.bash
 
 rm -rf ${rundir}/t21test
 cd ${rundir}
-tar --strip-components=1 -xf ${tarball}
+tar --strip-components=1 -xf ${tarball} t21test
 cd t21test
 
 sed -r "s/(^ *NPROC *= *).*/\1${nproc},/" namelists > fort.4
